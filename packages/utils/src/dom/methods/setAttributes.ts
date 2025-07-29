@@ -1,4 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import isElement from './isElement';
+
+function camelCase(str: any) {
+    return str.replace(/[-_](.)/g, (_match: any, char: string) => char.toUpperCase());
+}
+
+function setElementStyle(element: HTMLElement, value: string) {
+    const arr = value.split(';').map((el) => el.trim());
+
+    for (let i = 0, tmp; i < arr.length; ++i) {
+        if (!/:/.test(arr[i])) continue; // Empty or wrong
+        tmp = arr[i].split(':').map((el) => el.trim());
+        element.style[camelCase(tmp[0])] = tmp[1];
+    }
+}
 
 export default function setAttributes(element: HTMLElement, attributes: { [key: string]: any } = {}): void {
     if (isElement(element)) {
@@ -33,7 +49,12 @@ export default function setAttributes(element: HTMLElement, attributes: { [key: 
                 } else {
                     value = key === 'class' ? [...new Set(computedStyles('class', value))].join(' ').trim() : key === 'style' ? computedStyles('style', value).join(';').trim() : value;
                     ((element as any).$attrs = (element as any).$attrs || {}) && ((element as any).$attrs[key] = value);
-                    element.setAttribute(key, value);
+
+                    if (key === 'style') {
+                        setElementStyle(element, value);
+                    } else {
+                        element.setAttribute(key, value);
+                    }
                 }
             }
         });
